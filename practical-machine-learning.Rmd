@@ -18,19 +18,22 @@ output:
     fig_height: 6
     fig_caption: true
 ---
+# Summary
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# Introduction
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. 
+
+In this project, we use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants, asked to perform barbell lifts correctly and incorrectly in 5 different ways. **Our goal is to predict the manner in which they did the exercise.**
+
+# Exploratory Data Analysis
+
+The data for this project come from the [Weight Lifting Exercise Dataset](http://groupware.les.inf.puc-rio.br/har). The Dataset contains the  accelerometers data from six participants performing one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E). Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes.
+
+The dataset for this project was prevously splited in training and test set. The trainning set is composed of 19622 observations and the test of 20 observations.
 
 ```{r}
-summary(cars)
+train = read.csv("data/pml-training.csv")
+test = read.csv("data/pml-testing.csv")
 ```
 
-You can also embed plots, for example:
-
-```{r, echo=FALSE}
-plot(cars)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
