@@ -1,5 +1,5 @@
 ---
-title: "Practical Machine Learning"
+title: "Predict Corrrect Weight Lifting Exercise Using Accelerometers Data"
 author: "Roberto Arce"
 date: "March 22, 2016"
 knit: (function(inputFile, encoding) { 
@@ -26,14 +26,86 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 
 In this project, we use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants, asked to perform barbell lifts correctly and incorrectly in 5 different ways. **Our goal is to predict the manner in which they did the exercise.**
 
-# Exploratory Data Analysis
+# Exploratory Data Analysis and Preprocessing
 
 The data for this project come from the [Weight Lifting Exercise Dataset](http://groupware.les.inf.puc-rio.br/har). The Dataset contains the  accelerometers data from six participants performing one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E). Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes.
 
 The dataset for this project was prevously splited in training and test set. The trainning set is composed of 19622 observations and the test of 20 observations.
 
-```{r}
-train = read.csv("data/pml-training.csv")
-test = read.csv("data/pml-testing.csv")
+```{r cache=TRUE}
+raw_train = read.csv("data/pml-training.csv",na.strings=c("NA",""))
+raw_test = read.csv("data/pml-testing.csv",na.strings=c("NA",""))
 ```
+
+The data is composed by 160 variables including `classe`, the outcome variable. We remove the some variable, the row number, timestamp, the subject name and exercise window vars, who don't measure the exersice execution.
+
+```{r cache=TRUE}
+keep_cols = !(colnames(raw_train) %in% c("X","raw_timestamp_part_1","raw_timestamp_part_2","cvtd_timestamp","new_window","num_window","user_name"))
+train = raw_train[,keep_cols]
+test = raw_test[,keep_cols]
+```
+
+There are few examples with all variables set, only 406 examples in the training dataset.
+```{r cache=TRUE}
+sum(complete.cases(train))
+```
+
+We remove the columns that are mostly NAs, only the columns with more than 1921 non-NA values are keep. After that we retain 53 variables including the outcome.
+```{r cache=TRUE}
+mostly_data<-apply(!is.na(train),2,sum)>19621
+train<-train[,mostly_data]
+test<-test[,mostly_data]
+dim(train)
+```
+
+# Model
+
+We use random forest models to predict, the random forest model have many features, for example work with NA data, realize feature selection and get state of the art performance in mostly of the machine learning problems. First at all we load `caret` and setup ´doMC´ to fit the models using parallel processing.
+
+```{r cache=TRUE}
+suppressMessages(suppressWarnings(library(caret)))
+suppressMessages(suppressWarnings(library(doMC)))
+control <- trainControl(method="cv", 10)
+registerDoMC(8) # use 8 core, change if is diferent
+```
+
+We fit a **Random Forest** model, using **10-fold** cross-validation. 
+
+```{r cache=TRUE}
+suppressMessages(suppressWarnings(library(randomForest)))
+set.seed(1)
+model_rf <- train(as.factor(classe) ~ ., data=train, method="rf", trControl=control, parallel=TRUE)
+```
+
+## Model performance
+
+The model fit, use 52 variables from the dataset, and get and overall accuracy of 99.37%.
+
+```{r cache=TRUE}
+model_rf
+```
+
+In the following we see the confusion matrix of the model, this show us there is no miss-prediction over the training set.
+```{r cache=TRUE}
+predict_train <- predict(model_rf, train)
+confusionMatrix(train$classe, predict_train)$table
+```
+
+## Most important variables
+
+From the fitted model we can see the most important variables, the following plot show us, `roll_belt` is the most important feature follow by `yaw_belt`.
+
+```{r cache=TRUE}
+plot(varImp(model_rf), main = "Top 15 most influencial Predictors", top = 15)
+```
+
+# Predicting Test Set
+
+Finally the prediction for the test set is the following.
+
+```{r cache=TRUE}
+predict_test <- predict(model_rf, test)
+predict_test
+```
+
 
